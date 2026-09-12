@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HDFS Command Reference</title>
+<style>
+  :root{
+    --bg:#12161a;
+    --panel:#181d22;
+    --panel-border:#262d34;
+    --text:#dde3e8;
+    --muted:#7d8891;
+    --accent:#e0a458;
+    --accent-dim:#8a6a3d;
+    --cyan:#5fb3ae;
+    --row-hover:#1e252b;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, Menlo, monospace;
+    --sans: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding-bottom:4rem;
+  }
+
+  header{
+    padding:3rem 1.5rem 1.5rem;
+    max-width:920px;
+    margin:0 auto;
+    border-bottom:1px solid var(--panel-border);
+  }
+
+  .kicker{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    color:var(--cyan);
+    letter-spacing:0.02em;
+    margin:0 0 0.6rem;
+  }
+
+  h1{
+    font-size:2rem;
+    font-weight:600;
+    margin:0 0 0.5rem;
+    letter-spacing:-0.01em;
+  }
+
+  header p.sub{
+    color:var(--muted);
+    margin:0;
+    max-width:60ch;
+    font-size:0.98rem;
+  }
+
+  .controls{
+    position:sticky;
+    top:0;
+    background:rgba(18,22,26,0.94);
+    backdrop-filter:blur(6px);
+    z-index:10;
+    padding:1rem 1.5rem;
+    border-bottom:1px solid var(--panel-border);
+  }
+
+  .controls-inner{
+    max-width:920px;
+    margin:0 auto;
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.6rem;
+    align-items:center;
+  }
+
+  #search{
+    flex:1 1 240px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:0.92rem;
+    padding:0.6rem 0.8rem;
+    border-radius:6px;
+    outline:none;
+    transition:border-color 0.15s ease;
+  }
+  #search:focus{ border-color:var(--cyan); }
+  #search::placeholder{ color:var(--muted); }
+
+  .chip{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    color:var(--muted);
+    background:transparent;
+    border:1px solid var(--panel-border);
+    padding:0.42rem 0.75rem;
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:all 0.12s ease;
+  }
+  .chip:hover{ color:var(--text); border-color:var(--muted); }
+  .chip.active{
+    color:var(--bg);
+    background:var(--cyan);
+    border-color:var(--cyan);
+    font-weight:600;
+  }
+
+  .count{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    color:var(--muted);
+    margin-left:auto;
+    padding-left:0.5rem;
+  }
+
+  main{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 1.5rem;
+  }
+
+  section.group{
+    margin-top:2.2rem;
+  }
+
+  section.group h2{
+    font-size:0.82rem;
+    text-transform:none;
+    letter-spacing:0.01em;
+    color:var(--accent);
+    font-family:var(--mono);
+    margin:0 0 0.8rem;
+    padding-bottom:0.5rem;
+    border-bottom:1px solid var(--panel-border);
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:minmax(220px, 1.05fr) 1.4fr;
+    gap:1.2rem;
+    align-items:start;
+    padding:0.7rem 0.6rem;
+    border-radius:6px;
+    border-bottom:1px solid #1c2228;
+  }
+  .row:last-child{ border-bottom:none; }
+  .row:hover{ background:var(--row-hover); }
+  .row.hidden{ display:none; }
+
+  code{
+    font-family:var(--mono);
+    font-size:0.86rem;
+    color:var(--accent);
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    padding:0.25rem 0.5rem;
+    border-radius:4px;
+    white-space:pre;
+    overflow-x:auto;
+    display:inline-block;
+    max-width:100%;
+  }
+
+  .desc{
+    color:var(--text);
+    font-size:0.92rem;
+    padding-top:0.3rem;
+  }
+
+  .empty-state{
+    display:none;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:0.9rem;
+    padding:3rem 0.6rem;
+    text-align:center;
+  }
+
+  footer{
+    max-width:920px;
+    margin:2.5rem auto 0;
+    padding:1.2rem 1.5rem 0;
+    border-top:1px solid var(--panel-border);
+    color:var(--muted);
+    font-size:0.82rem;
+    font-family:var(--mono);
+  }
+
+  footer code{ font-size:0.8rem; padding:0.15rem 0.4rem; }
+
+  @media (max-width:620px){
+    .row{ grid-template-columns:1fr; gap:0.4rem; }
+    header{ padding:2.2rem 1.2rem 1.2rem; }
+    .controls{ padding:0.8rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="kicker">$ man hdfs</p>
+  <h1>HDFS Command Reference</h1>
+  <p class="sub">Every command uses the <code style="padding:0.1rem 0.35rem;">hdfs dfs</code> prefix (the legacy <code style="padding:0.1rem 0.35rem;">hadoop fs</code> form still works identically). Search or filter by category below.</p>
+</header>
+
+<div class="controls">
+  <div class="controls-inner">
+    <input id="search" type="text" placeholder="Filter commands, e.g. 'permissions' or '-chmod'..." autocomplete="off">
+    <button class="chip active" data-cat="all">All</button>
+    <button class="chip" data-cat="basics">Basics</button>
+    <button class="chip" data-cat="copy">Copying</button>
+    <button class="chip" data-cat="view">Viewing</button>
+    <button class="chip" data-cat="info">Info &amp; Size</button>
+    <button class="chip" data-cat="perms">Permissions</button>
+    <button class="chip" data-cat="replication">Replication</button>
+    <button class="chip" data-cat="admin">Admin</button>
+    <button class="chip" data-cat="trash">Trash</button>
+    <span class="count" id="count"></span>
+  </div>
+</div>
+
+<main>
+
+  <section class="group" data-cat="basics">
+    <h2>File &amp; directory basics</h2>
+    <div class="row"><code>hdfs dfs -ls /path</code><div class="desc">List directory contents.</div></div>
+    <div class="row"><code>hdfs dfs -ls -R /path</code><div class="desc">List directory contents recursively.</div></div>
+    <div class="row"><code>hdfs dfs -mkdir /path</code><div class="desc">Create a directory.</div></div>
+    <div class="row"><code>hdfs dfs -mkdir -p /path/to/dir</code><div class="desc">Create a directory along with any missing parent directories.</div></div>
+    <div class="row"><code>hdfs dfs -rm /path/file</code><div class="desc">Remove a file (moves it to trash if enabled).</div></div>
+    <div class="row"><code>hdfs dfs -rm -r /path</code><div class="desc">Remove a directory and its contents recursively.</div></div>
+    <div class="row"><code>hdfs dfs -rm -skipTrash /path/file</code><div class="desc">Delete a file permanently, bypassing trash.</div></div>
+    <div class="row"><code>hdfs dfs -rmdir /path</code><div class="desc">Remove a directory only if it's empty.</div></div>
+  </section>
+
+  <section class="group" data-cat="copy">
+    <h2>Copying data</h2>
+    <div class="row"><code>hdfs dfs -put localfile /hdfs/path</code><div class="desc">Copy a file from the local filesystem into HDFS.</div></div>
+    <div class="row"><code>hdfs dfs -copyFromLocal localfile /hdfs/path</code><div class="desc">Equivalent to <code style="padding:0.1rem 0.35rem;">-put</code>, copies local file into HDFS.</div></div>
+    <div class="row"><code>hdfs dfs -get /hdfs/path localfile</code><div class="desc">Copy a file from HDFS down to the local filesystem.</div></div>
+    <div class="row"><code>hdfs dfs -copyToLocal /hdfs/path localfile</code><div class="desc">Equivalent to <code style="padding:0.1rem 0.35rem;">-get</code>, copies HDFS file to local disk.</div></div>
+    <div class="row"><code>hdfs dfs -cp /src/path /dst/path</code><div class="desc">Copy a file or directory within HDFS.</div></div>
+    <div class="row"><code>hdfs dfs -mv /src/path /dst/path</code><div class="desc">Move or rename a file or directory within HDFS.</div></div>
+    <div class="row"><code>hdfs dfs -getmerge /hdfs/dir localfile.txt</code><div class="desc">Merge all files in an HDFS directory into a single local file.</div></div>
+  </section>
+
+  <section class="group" data-cat="view">
+    <h2>Viewing file content</h2>
+    <div class="row"><code>hdfs dfs -cat /path/file</code><div class="desc">Print the full contents of a file to stdout.</div></div>
+    <div class="row"><code>hdfs dfs -tail /path/file</code><div class="desc">Show the last kilobyte of a file's contents.</div></div>
+    <div class="row"><code>hdfs dfs -cat /path/file | head</code><div class="desc">Pipe output to view just the first lines of a file.</div></div>
+    <div class="row"><code>hdfs dfs -text /path/file</code><div class="desc">Print a file as text, auto-decompressing gzip/Avro/SequenceFile input.</div></div>
+  </section>
+
+  <section class="group" data-cat="info">
+    <h2>File info &amp; sizes</h2>
+    <div class="row"><code>hdfs dfs -du /path</code><div class="desc">Show disk usage for files/directories under a path.</div></div>
+    <div class="row"><code>hdfs dfs -du -h /path</code><div class="desc">Same as above, with human-readable sizes (KB/MB/GB).</div></div>
+    <div class="row"><code>hdfs dfs -du -s -h /path</code><div class="desc">Show a single summarized total size for a path.</div></div>
+    <div class="row"><code>hdfs dfs -df -h</code><div class="desc">Show overall filesystem capacity and usage across the cluster.</div></div>
+    <div class="row"><code>hdfs dfs -count /path</code><div class="desc">Count directories, files, and total bytes under a path.</div></div>
+    <div class="row"><code>hdfs dfs -count -h /path</code><div class="desc">Same count, formatted in human-readable units.</div></div>
+    <div class="row"><code>hdfs dfs -test -e /path/file</code><div class="desc">Test whether a path exists (use <code style="padding:0.1rem 0.35rem;">-d</code>/<code style="padding:0.1rem 0.35rem;">-f</code> for directory/file checks).</div></div>
+  </section>
+
+  <section class="group" data-cat="perms">
+    <h2>Permissions &amp; ownership</h2>
+    <div class="row"><code>hdfs dfs -chmod 755 /path</code><div class="desc">Change permissions on a file or directory.</div></div>
+    <div class="row"><code>hdfs dfs -chmod -R 755 /path</code><div class="desc">Change permissions recursively.</div></div>
+    <div class="row"><code>hdfs dfs -chown user:group /path</code><div class="desc">Change the owner and group of a path.</div></div>
+    <div class="row"><code>hdfs dfs -chown -R user:group /path</code><div class="desc">Change owner and group recursively.</div></div>
+    <div class="row"><code>hdfs dfs -chgrp group /path</code><div class="desc">Change the group of a path.</div></div>
+  </section>
+
+  <section class="group" data-cat="replication">
+    <h2>Replication &amp; blocks</h2>
+    <div class="row"><code>hdfs dfs -setrep -w 3 /path/file</code><div class="desc">Set replication factor for a file and wait for it to complete.</div></div>
+    <div class="row"><code>hdfs fsck /path/file -files -blocks -locations</code><div class="desc">Inspect block locations and health for a specific file.</div></div>
+  </section>
+
+  <section class="group" data-cat="admin">
+    <h2>Admin &amp; cluster health <span style="color:var(--muted); font-weight:400;">— run as HDFS superuser</span></h2>
+    <div class="row"><code>hdfs fsck /</code><div class="desc">Run a filesystem check across the whole cluster.</div></div>
+    <div class="row"><code>hdfs dfsadmin -safemode get</code><div class="desc">Check whether the NameNode is currently in safe mode.</div></div>
+    <div class="row"><code>hdfs dfsadmin -safemode enter</code><div class="desc">Manually put the NameNode into safe mode.</div></div>
+    <div class="row"><code>hdfs dfsadmin -safemode leave</code><div class="desc">Take the NameNode out of safe mode.</div></div>
+    <div class="row"><code>hdfs dfsadmin -report</code><div class="desc">Print a cluster-wide capacity and DataNode status report.</div></div>
+    <div class="row"><code>hdfs dfsadmin -refreshNodes</code><div class="desc">Reload the list of allowed/excluded DataNodes.</div></div>
+    <div class="row"><code>hdfs balancer</code><div class="desc">Rebalance data blocks evenly across DataNodes.</div></div>
+    <div class="row"><code>hdfs dfsadmin -printTopology</code><div class="desc">Print the rack/DataNode topology of the cluster.</div></div>
+  </section>
+
+  <section class="group" data-cat="trash">
+    <h2>Trash</h2>
+    <div class="row"><code>hdfs dfs -expunge</code><div class="desc">Permanently empty the trash immediately.</div></div>
+    <div class="row"><code>hdfs dfs -ls /user/$USER/.Trash</code><div class="desc">List what's currently sitting in trash.</div></div>
+  </section>
+
+  <p class="empty-state" id="empty">No matching commands. Try a different search term.</p>
+
+</main>
+
+<footer>
+  <p>Tip: <code>hdfs dfs -help &lt;command&gt;</code> shows full usage for any subcommand. Wildcards work — <code>hdfs dfs -ls /data/*.csv</code></p>
+</footer>
+
+<script>
+  const search = document.getElementById('search');
+  const chips = document.querySelectorAll('.chip');
+  const groups = document.querySelectorAll('section.group');
+  const emptyState = document.getElementById('empty');
+  const countEl = document.getElementById('count');
+  let activeCat = 'all';
+
+  function applyFilters(){
+    const term = search.value.trim().toLowerCase();
+    let visibleTotal = 0;
+
+    groups.forEach(group => {
+      const cat = group.dataset.cat;
+      const catMatches = (activeCat === 'all' || activeCat === cat);
+      let visibleInGroup = 0;
+
+      group.querySelectorAll('.row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const textMatches = term === '' || text.includes(term);
+        const show = catMatches && textMatches;
+        row.classList.toggle('hidden', !show);
+        if(show) visibleInGroup++;
+      });
+
+      group.style.display = (catMatches && visibleInGroup > 0) ? '' : 'none';
+      visibleTotal += visibleInGroup;
+    });
+
+    emptyState.style.display = visibleTotal === 0 ? 'block' : 'none';
+    countEl.textContent = visibleTotal + (visibleTotal === 1 ? ' command' : ' commands');
+  }
+
+  search.addEventListener('input', applyFilters);
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCat = chip.dataset.cat;
+      applyFilters();
+    });
+  });
+
+  applyFilters();
+</script>
+
+</body>
+</html>

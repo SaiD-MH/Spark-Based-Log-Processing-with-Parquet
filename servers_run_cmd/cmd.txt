@@ -1,0 +1,45 @@
+1. Start HDFS
+bash
+start-dfs.sh
+jps
+
+Confirm: NameNode, DataNode, SecondaryNameNode
+
+2. Start YARN
+bash
+start-yarn.sh
+jps
+
+Confirm: ResourceManager, NodeManager added to the list
+
+3. Load your Hive/Tez environment variables
+bash
+source ~/.bashrc
+echo $TEZ_HOME
+
+Confirm it prints /home/linux/tez — if blank, HiveServer2 will fail with the classpath errors we fixed earlier.
+
+4. Start HiveServer2 (in the terminal where you just sourced .bashrc)
+bash
+hiveserver2
+
+Leave this running in its own terminal — don't close it. Wait until it settles (no more log lines scrolling).
+
+5. Connect via Beeline (separate terminal, to test/query)
+bash
+beeline -u "jdbc:hive2://localhost:10000/default;auth=noSasl" -n linux
+6. Start Superset (separate terminal, its own venv)
+bash
+source ~/superset_venv/bin/activate
+export FLASK_APP=superset
+superset run -p 8089 --with-threads --reload --debugger
+
+Then open http://localhost:8089 in a browser.
+
+Shutting everything down, in reverse order, when you're done:
+
+bash
+# Ctrl+C in the Superset terminal
+# Ctrl+C in the HiveServer2 terminal (or kill its RunJar PID)
+stop-yarn.sh
+stop-dfs.sh
