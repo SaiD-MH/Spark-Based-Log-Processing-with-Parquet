@@ -3,7 +3,7 @@ from datetime import date , timedelta
 import subprocess
 import sys
 from  pathlib import Path
-RUN_DATE = date.today() - timedelta(days=3)
+RUN_DATE = date.today()
 BASE_PATH= '/user/linux'
 BRONZE_PATH='/user/linux/bronze'
 STG_PATH='/user/linux/stg_temp_write'
